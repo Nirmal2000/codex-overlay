@@ -184,7 +184,11 @@ Never commit or copy `~/.pi/agent/auth.json`. Each user authenticates their own 
 
 ## Create the context folder
 
-The selected context root must contain the following files:
+Only the folder location is required. The application has no required filenames, manifests, or directory hierarchy. It recursively preloads supported UTF-8 documents from anywhere below the selected folder into both Quick and Pi.
+
+Supported files are Markdown, plain text, JSON, YAML, TOML, RST, and CSV. Hidden entries, symlinks, source-control metadata, dependency folders, and common build-output directories are ignored. Convert useful PDF, Word, image, database, or other binary content to a supported text format first.
+
+The included template is an optional example, not a schema:
 
 ```text
 context-root/
@@ -213,11 +217,13 @@ mkdir -p "$CONTEXT_ROOT"
 cp -R context-template/. "$CONTEXT_ROOT"/
 ```
 
-The setup agent must then ask enough factual questions to complete every document. It must distinguish verified personal facts from defensible technical explanations. Do not invent employers, titles, dates, ownership, customers, metrics, education, or production claims. Remove the example company/project directories only after real replacements exist.
+The user may freely rename, move, add, or remove every file and subdirectory shown above. The setup agent must ask enough factual questions to make the selected folder useful. It must distinguish verified personal facts from defensible technical explanations. Do not invent employers, titles, dates, ownership, customers, metrics, education, or production claims. Remove placeholder/example content before the first real session.
 
-Use absolute repository paths in `Experience/repo-map.md`. Verify every listed path exists on the new Mac.
+Most importantly, ask which facts, introductions, project explanations, prepared answers, constraints, and response preferences must be available to **Quick** without delay. Put that material into concise supported documents anywhere inside the selected folder. The app injects every discovered document directly into Quick's initial prompt, so Quick requires neither file traversal nor web search. Keep the folder curated enough to fit comfortably in model context; do not point it at the user's home directory or an entire code repository.
 
-Validate the structure:
+If Pi may inspect source later, place verified absolute repository paths in any context document and confirm every path exists on the new Mac. No particular map filename is required.
+
+Validate the folder:
 
 ```bash
 ./scripts/doctor.sh "$CONTEXT_ROOT"

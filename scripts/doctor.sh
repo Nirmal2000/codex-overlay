@@ -33,12 +33,23 @@ fi
 if [[ -f .env ]]; then
   print "OK   .env exists"
   for key_name in OPENAI_API_KEY XAI_API_KEY; do
-    if grep -Eq "^${key_name}=.+" .env; then
-      print "OK   $key_name is configured"
+    configured_source=""
+    if [[ -n "$(printenv "$key_name" 2>/dev/null)" ]]; then
+      configured_source="process environment"
     else
-      print "FAIL $key_name is missing or empty"
-      failed=1
+      for env_candidate in .env src-tauri/.env "$HOME/Library/Application Support/local.codex.overlay/.env"; do
+        if [[ -f "$env_candidate" ]] && grep -Eq "^${key_name}=.+" "$env_candidate"; then
+          configured_source="$env_candidate"
+          break
+        fi
+      done
     fi
+    if [[ -n "$configured_source" ]]; then
+      print "OK   $key_name is configured via $configured_source"
+      continue
+    fi
+    print "FAIL $key_name is missing or empty"
+    failed=1
   done
 else
   print "FAIL .env is missing"
@@ -47,23 +58,18 @@ fi
 
 context_root=${1:-}
 if [[ -n "$context_root" ]]; then
-  required=(
-    Experience/quick-context.md
-    Experience/resolved-facts.md
-    Experience/career-timeline.md
-    Experience/expertise-map.md
-    Experience/repo-map.md
-    13-spoken-project-notes.md
-    11-interview-answer-scripts.md
-  )
-  for relative_path in "${required[@]}"; do
-    if [[ -f "$context_root/$relative_path" ]]; then
-      print "OK   context/$relative_path"
+  if [[ ! -d "$context_root" ]]; then
+    print "FAIL context folder does not exist: $context_root"
+    failed=1
+  else
+    context_count=$(find "$context_root" -type f \( -iname '*.md' -o -iname '*.markdown' -o -iname '*.txt' -o -iname '*.json' -o -iname '*.yaml' -o -iname '*.yml' -o -iname '*.toml' -o -iname '*.rst' -o -iname '*.csv' \) ! -path '*/.*/*' | wc -l | tr -d ' ')
+    if (( context_count > 0 )); then
+      print "OK   context folder contains $context_count supported document(s)"
     else
-      print "FAIL context/$relative_path is missing"
+      print "FAIL context folder contains no supported UTF-8 documents"
       failed=1
     fi
-  done
+  fi
 else
   print "INFO Pass the context root as the first argument to validate it."
 fi

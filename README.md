@@ -31,6 +31,16 @@ Every session uses the selected context folder and produces two answer lanes:
 
 Microphone transcript is labelled **You** and captured system audio is labelled **Speaker**. Unsent transcript, manual text, and queued screenshots are combined into the next turn. Session history is stored locally.
 
+### Context folder: no required filenames
+
+The app requires only an absolute folder location. It does not require an `Experience` directory, a manifest, or any specifically named file. At session start it recursively discovers every supported UTF-8 document below that folder, sorts the paths deterministically, and packs the document contents directly into both the Quick and Pi prompts.
+
+Supported extensions are `.md`, `.markdown`, `.txt`, `.json`, `.yaml`, `.yml`, `.toml`, `.rst`, and `.csv`. Hidden entries, symlinks, and common generated directories such as `.git`, `node_modules`, `target`, `dist`, and `build` are skipped. PDF, Word, image, database, and other binary files are not loaded; convert relevant material to one of the supported text formats.
+
+Keep this folder curated. Do not select a home directory or an entire source repository. Put facts and answer material that Quick must know immediately into concise documents anywhere inside the selected folder. Those documents are inserted into Quick's initial prompt, so Quick does not need file traversal or web search. Pi receives the same preload and can inspect an external repository later only when the context contains a valid path and more implementation evidence is needed.
+
+The supplied `context-template` is only an organizational example. Its filenames and directory layout are optional and have no special behavior.
+
 ## Available session modes
 
 Choose the Pi model and context directory before starting.
@@ -44,7 +54,7 @@ The overlay is a real rendered macOS window. Do not assume that it is excluded f
 
 ## Using the Overlay or normal Mac window
 
-1. Enter the absolute context/work directory and select the Pi model.
+1. Enter the absolute curated context-folder location and select the Pi model.
 2. Select **Start Overlay** or **Start Web App**.
 3. Wait until Microphone, Speaker, Quick, and Pi all report ready. **Send** remains disabled while any required service is starting.
 4. Speak, type a manual instruction, queue screenshots, and press **Send**.

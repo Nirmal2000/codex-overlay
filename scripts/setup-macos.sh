@@ -19,14 +19,14 @@ missing=()
 for command_name in xcode-select node npm rustc cargo meson ninja pkg-config; do
   command -v "$command_name" >/dev/null 2>&1 || missing+=("$command_name")
 done
-
-if ! pkg-config --exists absl_base; then
-  print -u2 "Abseil is missing. Install it with: brew install abseil"
-  exit 1
-fi
 if (( ${#missing[@]} )); then
   print -u2 "Missing prerequisites: ${missing[*]}"
   print -u2 "Read FRIEND_SETUP.md before installing dependencies."
+  exit 1
+fi
+
+if ! pkg-config --exists absl_base; then
+  print -u2 "Abseil is missing. Install it with: brew install abseil"
   exit 1
 fi
 

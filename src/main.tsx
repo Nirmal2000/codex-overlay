@@ -707,8 +707,8 @@ function render() {
           </article>`).join("")}</div>` : `<div class="empty">${sessionMode === "webapp" && remoteClients === 0 ? "Waiting for iPhone to connect" : "Transcript and answers appear here"}</div>`}` : `
           <div class="setup">
             <h1>Start a meeting session</h1>
-            <p>This directory becomes the working directory for one persistent Pi session.</p>
-            <input id="workspace" class="input" value="${escapeHtml(workspace)}" />
+            <p>Select one curated context folder. Supported text documents anywhere inside it are preloaded into Quick and Pi with no required filenames; it also becomes Pi's working directory.</p>
+            <input id="workspace" class="input" aria-label="Context folder" placeholder="/absolute/path/to/context-folder" value="${escapeHtml(workspace)}" />
             <label>Authoritative Pi model
               <select id="pi-model" class="select" ${sessionStarting ? "disabled" : ""}>
                 ${PI_MODEL_CHOICES.map((choice) => `<option value="${escapeHtml(choice.key)}" ${choice.key === selectedPiModelKey ? "selected" : ""}>${escapeHtml(choice.label)}</option>`).join("")}
@@ -980,7 +980,7 @@ async function startSession(mode: SessionMode, activateWindow = true) {
     closingSession = false;
     realtimeContextStatus = "Loading Quick context";
     piPreparing = true;
-    piContextStatus = "Loading full Mercor context";
+    piContextStatus = "Loading full context folder";
     quickState = "starting";
     piState = "starting";
     microphoneState = "starting";
