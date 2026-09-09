@@ -1,6 +1,6 @@
 # Codex Overlay: complete clean setup for macOS
 
-This is the canonical handoff document for a person or coding agent installing Codex Overlay from this repository. Read it completely before changing the machine. Do not declare success until every applicable acceptance check passes.
+This is the canonical handoff document for a person or coding agent installing Codex Overlay from this repository. Read it completely before changing the machine. Do not declare success until every applicable acceptance check passes **and the post-setup user orientation has been completed**.
 
 ## Rules for the setup agent
 
@@ -13,6 +13,7 @@ This is the canonical handoff document for a person or coding agent installing C
 7. Apple signing and notarization are optional. Their absence must not block a local build.
 8. Explain each command that changes the machine, but continue autonomously through ordinary build and verification work.
 9. Stop only when interactive OAuth, macOS privacy approval, or factual context from the user is required.
+10. After technical setup, teach the user how to operate every mode and control in the README. Building and launching the app is not a completed handoff.
 
 ## What to ask the user
 
@@ -324,6 +325,27 @@ Start with a short session and confirm:
 
 Do not accept a test that merely reaches the final answer. Confirm incremental streaming is visible.
 
+## Mandatory post-setup user orientation
+
+After the Mac acceptance test passes, open the README with the user and demonstrate its **Available session modes** through **Phone Controller mode** sections. Do not merely send the user a link.
+
+The installer must clearly explain:
+
+1. **Overlay mode:** borderless, always on top, non-activating, and still an ordinary rendered window that may appear in screen capture.
+2. **Web App mode:** a conventional resizable/minimizable Mac window plus the local iPhone interface. Starting a session from the phone does not intentionally activate the Mac window.
+3. **Readiness:** Send stays disabled until Microphone, Speaker, Quick, and Pi are ready. Demonstrate individual recovery on the Mac and the combined Retry failed control on the phone.
+4. **Manual input:** typing in the visible text area versus passive global capture toggled by **Capture keyboard** or **Shift + Backquote** (the tilde key).
+5. **Passive keys:** normal US-layout characters append to the pending manual input, Backspace removes a character, Return sends, and Option + S queues a Mac screenshot. Observed keys are not swallowed from the foreground app.
+6. **Always-available keys:** Option + Escape stops Pi; Option + Command + O reveals the Mac window; the Option-arrow/Space shortcuts control connected phone display scrolling.
+7. **Screenshots:** capture occurs on the Mac, requires Screen & System Audio Recording permission, is queued rather than auto-sent, and multiple captures attach to one turn.
+8. **Turn controls:** Send combines unsent transcript, manual input, and screenshots; Stop ends the current Pi response; Stop + Send replaces it with a new pending turn; Quick and Pi can be retried independently.
+9. **Phone Display mode:** the phone renders live transcript and both streaming answer lanes and provides Start, Screenshot, Send/Stop + Send, Retry failed, and End Session controls.
+10. **Phone Controller mode:** a separate minimal gesture surface; tap sends, vertical drag precisely scrolls connected Display clients, Jump latest resumes following, and Exit controller restores Display mode. Explain that a second Display client is needed if the controller phone must remain control-only.
+11. **Scroll ownership:** streaming follows only from the true bottom; scrolling upward must remain stable until the reader returns to the bottom or jumps latest.
+12. **Local-network limitation:** the prototype bridge has no authentication, so it must be used only on trusted Wi-Fi.
+
+Have the user personally complete one direct-text turn, one passive-keyboard turn, one screenshot turn, one follow-up after an image, one phone-started session, one manual phone scroll during streaming, one controller gesture with another Display client, and one clean End Session. Answer their questions before declaring the setup complete.
+
 ## Set up the iPhone PWA
 
 1. Put the Mac and iPhone on the same Wi-Fi network. Disable VPN isolation or guest-network client isolation if the phone cannot connect.
@@ -332,6 +354,13 @@ Do not accept a test that merely reaches the final answer. Confirm incremental s
 4. Open the URL in Safari.
 5. Use **Share → Add to Home Screen**.
 6. Launch the installed PWA and keep the phone awake.
+
+The same URL supports two roles:
+
+- **Display** is the default. It renders the live transcript and both answer lanes, and exposes lifecycle/action buttons for Web App sessions.
+- **Controller** is selected from the idle Display controls. It hides conversation content and becomes a gesture pad for connected Display clients. Tap sends, vertical dragging scrolls precisely, and Jump latest returns displays to the newest content.
+
+Controller mode does not scroll the normal Mac window; it sends scroll commands to phone/tablet clients that remain in Display mode. With only one phone, exit Controller mode to see answers again.
 
 Verify from the phone:
 
@@ -422,6 +451,8 @@ The setup is complete only when all of the following are true:
 - [ ] System audio transcribes while the user can still hear it.
 - [ ] The iPhone PWA connects and streams when requested.
 - [ ] Scroll position remains under the reader's control.
+- [ ] The installer has explained and demonstrated every operating mode, keyboard control, screenshot/send behavior, phone Display control, Controller gesture, retry path, and shutdown step in the README.
+- [ ] The user has personally completed the required post-setup practice workflow.
 - [ ] No secret, OAuth file, transcript, screenshot, session database, or unintended personal context is staged for Git.
 
 ## References
