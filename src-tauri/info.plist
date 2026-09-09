@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <!-- Microphone Access - Only for voice input, NOT for system audio capture -->
+  <key>NSMicrophoneUsageDescription</key>
+  <string>Codex Overlay uses your microphone to append your speech to the meeting transcript.</string>
+  
+  <!-- Screen Capture -->
+  <key>NSScreenCaptureUsageDescription</key>
+  <string>Codex Overlay uses screen capture when you attach a screenshot to a Codex turn.</string>
+  
+  <!-- System Audio -->
+  <key>NSAudioCaptureUsageDescription</key>
+  <string>Codex Overlay uses system audio to append the other side of a meeting to the transcript.</string>
+
+  <!-- Privacy - Audio Processing -->
+  <key>NSPrivacyAccessedAPITypes</key>
+  <array>
+    <dict>
+      <key>NSPrivacyAccessedAPIType</key>
+      <string>NSPrivacyAccessedAPICategoryAudioProcessing</string>
+      <key>NSPrivacyAccessedAPITypeReasons</key>
+      <array>
+        <string>C617.1</string>
+      </array>
+    </dict>
+  </array>
+  
+</dict>
+</plist>

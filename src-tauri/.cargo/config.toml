@@ -1,0 +1,7 @@
+[env]
+# The bundled WebRTC AEC build must use its bundled Abseil archive. Linking
+# Homebrew's dylibs makes the signed app fail macOS library-validation checks.
+ABSL_BASE_NO_PKG_CONFIG = "1"
+# Meson performs its own pkg-config lookup. An isolated search path forces its
+# bundled Abseil fallback instead of Homebrew's separately signed dylibs.
+PKG_CONFIG_LIBDIR = "/nonexistent/codex-overlay-pkgconfig"

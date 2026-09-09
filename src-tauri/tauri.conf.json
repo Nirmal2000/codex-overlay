@@ -1,0 +1,66 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Codex Overlay",
+  "version": "0.1.9",
+  "identifier": "local.codex.overlay",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "macOSPrivateApi": true,
+    "windows": [
+      {
+        "title": "Codex Overlay",
+        "width": 720,
+        "height": 620,
+        "decorations": false,
+        "transparent": true,
+        "alwaysOnTop": true,
+        "resizable": true,
+        "minWidth": 480,
+        "minHeight": 360,
+        "visibleOnAllWorkspaces": true,
+        "skipTaskbar": true,
+        "visible": true,
+        "center": false,
+        "contentProtected": true,
+        "backgroundThrottling": "disabled",
+        "focus": false,
+        "acceptFirstMouse": true,
+        "shadow": false
+      }
+    ],
+    "security": { "csp": null }
+  },
+  "bundle": {
+    "active": true,
+    "createUpdaterArtifacts": false,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "resources": {
+      "info.plist": "info.plist",
+      "../pi-bridge/index.mjs": "pi-bridge/index.mjs",
+      "../pi-bridge/images.mjs": "pi-bridge/images.mjs",
+      "../pi-bridge/web-search.mjs": "pi-bridge/web-search.mjs",
+      "pi-node_modules": "node_modules"
+    },
+    "macOS": {
+      "minimumSystemVersion": "14.2",
+      "entitlements": "Entitlements.plist"
+    }
+  },
+  "plugins": {
+    "sql": {
+      "preload": ["sqlite:pluely.db"]
+    }
+  }
+}

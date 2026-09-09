@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+    <meta name="theme-color" content="#050506" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Codex View" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/icon.png" />
+    <link rel="stylesheet" href="/styles.css" />
+    <title>Codex View</title>
+  </head>
+  <body>
+    <div id="connection" class="connection">Connecting to Mac…</div>
+    <div id="display-root">
+      <main id="conversation" aria-live="polite">
+        <div class="empty">Waiting for the session on your Mac…</div>
+      </main>
+      <aside id="live-transcript" class="live-transcript" aria-live="polite" hidden></aside>
+      <footer id="controls" class="controls" aria-label="Session controls" hidden></footer>
+    </div>
+    <div id="controller-root" class="controller-root" hidden>
+      <div id="controller-status" class="controller-status">Connecting…</div>
+      <div id="pad" class="pad" role="slider" aria-label="Scroll the display phone"></div>
+      <p class="pad-hint">Tap to send · drag to scroll</p>
+      <footer id="controller-controls" class="controller-controls">
+        <button type="button" data-action="jump_latest">Jump latest</button>
+        <button type="button" id="controller-send" class="primary" data-action="send" disabled>Send</button>
+        <button type="button" data-role="display" class="ghost">Exit controller</button>
+      </footer>
+    </div>
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>
