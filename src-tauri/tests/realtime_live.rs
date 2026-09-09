@@ -1,5 +1,5 @@
 use base64::Engine;
-use codex_overlay_lib::context::{load_context, ContextKind};
+use codex_overlay_lib::context::{build_prompt_context, ContextKind};
 use codex_overlay_lib::prompts::REALTIME_INSTRUCTIONS;
 use codex_overlay_lib::realtime::{configured_openai_key, REALTIME_MODEL};
 use futures_util::{SinkExt, StreamExt};
@@ -33,9 +33,10 @@ struct LiveResponse {
 #[ignore = "extended live prompt evaluation; run explicitly to stay within API TPM limits"]
 async fn live_production_prompt_is_fast_speakable_grounded_and_modality_aware() {
     let mut session = LiveSession::connect().await;
-    let context_root = std::env::var("CODEX_OVERLAY_CONTEXT_ROOT")
-        .expect("set CODEX_OVERLAY_CONTEXT_ROOT before running this ignored live test");
-    let context = load_context(std::path::Path::new(&context_root), ContextKind::Realtime).unwrap();
+    let direct_context = std::env::var("CODEX_OVERLAY_DIRECT_CONTEXT").unwrap_or_else(|_| {
+        "I am a software engineer. Give concise, speakable interview answers.".to_string()
+    });
+    let context = build_prompt_context(&direct_context, ContextKind::Realtime);
     session
         .append_text(
             "system",

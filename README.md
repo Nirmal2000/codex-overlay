@@ -13,7 +13,7 @@ The short path after prerequisites are installed is:
 ```bash
 cp .env.example .env
 # Fill OPENAI_API_KEY and XAI_API_KEY without committing the file.
-./scripts/setup-macos.sh "$HOME/codex-overlay-context"
+./scripts/setup-macos.sh "$HOME/codex-overlay-workspace"
 npm run tauri -- build --bundles app
 ditto "src-tauri/target/release/bundle/macos/Codex Overlay.app" "/Applications/Codex Overlay.app"
 open -a "/Applications/Codex Overlay.app"
@@ -24,26 +24,25 @@ open -a "/Applications/Codex Overlay.app"
 
 ## How the application is organized
 
-Every session uses the selected context folder and produces two answer lanes:
+Every session uses a selected Pi workspace plus a compact direct-context prompt and produces two answer lanes:
 
 - **Quick** uses OpenAI Realtime and is intended to begin streaming quickly.
 - **Pi** uses the selected authoritative model and can use the workspace and configured Pi provider.
 
 Microphone transcript is labelled **You** and captured system audio is labelled **Speaker**. Unsent transcript, manual text, and queued screenshots are combined into the next turn. Session history is stored locally.
 
-### Context folder: no required filenames
+### Workspace files versus direct context
 
-The app requires only an absolute folder location. It does not require an `Experience` directory, a manifest, or any specifically named file. At session start it recursively discovers every supported UTF-8 document below that folder, sorts the paths deterministically, and packs the document contents directly into both the Quick and Pi prompts.
+These are deliberately separate:
 
-Supported extensions are `.md`, `.markdown`, `.txt`, `.json`, `.yaml`, `.yml`, `.toml`, `.rst`, and `.csv`. Hidden entries, symlinks, and common generated directories such as `.git`, `node_modules`, `target`, `dist`, and `build` are skipped. PDF, Word, image, database, and other binary files are not loaded; convert relevant material to one of the supported text formats.
+- **Pi workspace folder:** provide only an absolute folder location. Pi starts in that directory and discovers relevant files with listing, finding, grep, and read tools when a question requires them. There are no required filenames, manifests, or directory structures, and workspace files are not dumped wholesale into model context.
+- **Direct context for Quick and Pi:** paste a compact block into the setup screen containing the facts, background, prepared answers, and response rules that must be available immediately. It is inserted directly into both model prompts and saved only in local app storage. Quick has no filesystem or web-search tools, so anything Quick must know must be included here.
 
-Keep this folder curated. Do not select a home directory or an entire source repository. Put facts and answer material that Quick must know immediately into concise documents anywhere inside the selected folder. Those documents are inserted into Quick's initial prompt, so Quick does not need file traversal or web search. Pi receives the same preload and can inspect an external repository later only when the context contains a valid path and more implementation evidence is needed.
-
-The supplied `context-template` is only an organizational example. Its filenames and directory layout are optional and have no special behavior.
+The setup agent should help the user produce the direct-context block from their private material, but must not commit it to this repository. Keep it concise enough for model context. Pi can fall back to workspace traversal when direct context is insufficient; web search is reserved for information absent from both or for current public facts.
 
 ## Available session modes
 
-Choose the Pi model and context directory before starting.
+Choose the Pi model, Pi workspace directory, and direct context before starting.
 
 | Mode | Mac window | Phone behavior | Best use |
 |---|---|---|---|
@@ -54,7 +53,7 @@ The overlay is a real rendered macOS window. Do not assume that it is excluded f
 
 ## Using the Overlay or normal Mac window
 
-1. Enter the absolute curated context-folder location and select the Pi model.
+1. Enter the absolute Pi workspace folder, fill the direct-context prompt, and select the Pi model.
 2. Select **Start Overlay** or **Start Web App**.
 3. Wait until Microphone, Speaker, Quick, and Pi all report ready. **Send** remains disabled while any required service is starting.
 4. Speak, type a manual instruction, queue screenshots, and press **Send**.
@@ -157,6 +156,29 @@ Setup is incomplete until the user has successfully performed one text turn, one
 
 Secrets may be supplied through process environment variables, the repository `.env`, `src-tauri/.env`, or an app-local `.env`. Repository `.env` files are ignored by Git.
 
+## Log in to Pi providers
+
+From the repository root, start Pi once:
+
+```bash
+./node_modules/.bin/pi
+```
+
+At the Pi prompt, run the login matching the models the user wants:
+
+```text
+/login openai-codex
+/login xai
+/login openrouter
+```
+
+- **ChatGPT subscription models:** use `/login openai-codex` and complete the browser OAuth flow.
+- **Grok through an xAI subscription:** use `/login xai` and complete the xAI login flow.
+- **OpenRouter models:** use `/login openrouter` or set `OPENROUTER_API_KEY` locally.
+- **Cursor models:** configure `CURSOR_API_KEY` or compatible Pi authentication.
+
+Exit Pi only after it confirms authentication, then start or restart Codex Overlay. Pi stores subscription credentials in `~/.pi/agent/auth.json`; never commit or send that file to another user. Every person must authenticate their own accounts.
+
 ## Development
 
 ```bash
@@ -167,7 +189,7 @@ npm run tauri -- dev
 Useful checks:
 
 ```bash
-./scripts/doctor.sh /absolute/path/to/context
+./scripts/doctor.sh /absolute/path/to/pi-workspace
 npm run build
 npm run test:pi-bridge
 npm run test:remote

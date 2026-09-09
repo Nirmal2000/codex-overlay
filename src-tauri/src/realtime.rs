@@ -19,7 +19,7 @@ use tokio_tungstenite::tungstenite::Message;
 use tokio_tungstenite::{MaybeTlsStream, WebSocketStream};
 use uuid::Uuid;
 
-use crate::context::{load_context, ContextInfo, ContextKind};
+use crate::context::{build_prompt_context, ContextInfo, ContextKind};
 use crate::credentials::load_secret;
 use crate::prompts::realtime_instructions;
 
@@ -87,11 +87,11 @@ struct RealtimeFailure {
 pub async fn start_realtime_session(
     app: AppHandle,
     state: tauri::State<'_, RealtimeState>,
-    workspace: String,
+    direct_context: String,
 ) -> Result<ContextInfo, String> {
     let generation = state.session_generation.fetch_add(1, Ordering::SeqCst) + 1;
     let _preparation = state.preparation_gate.lock().await;
-    let pack = load_context(Path::new(&workspace), ContextKind::Realtime)?;
+    let pack = build_prompt_context(&direct_context, ContextKind::Realtime);
     ensure_current_session(&state, generation)?;
     let current_hash = state.context_hash.lock().await.clone();
     if current_hash.as_deref() != Some(&pack.info.hash) {
@@ -102,7 +102,7 @@ pub async fn start_realtime_session(
                 "system",
                 "input_text",
                 &format!(
-                    "REALTIME_CONTEXT_PACK version={} hash={}\n{}",
+                    "DIRECT_CANDIDATE_CONTEXT version={} hash={}\n<candidate_context>\n{}\n</candidate_context>",
                     pack.info.version, pack.info.hash, pack.text
                 ),
             ),

@@ -18,6 +18,10 @@ let workspace = (() => {
   try { return window.localStorage.getItem("codex-overlay.workspace") ?? ""; }
   catch { return ""; }
 })();
+let directContext = (() => {
+  try { return window.localStorage.getItem("codex-overlay.direct-context") ?? ""; }
+  catch { return ""; }
+})();
 type SessionMode = "overlay" | "webapp";
 type PiThinkingLevel = "low" | "medium" | "high" | "max";
 type PiModelChoice = {
@@ -707,8 +711,11 @@ function render() {
           </article>`).join("")}</div>` : `<div class="empty">${sessionMode === "webapp" && remoteClients === 0 ? "Waiting for iPhone to connect" : "Transcript and answers appear here"}</div>`}` : `
           <div class="setup">
             <h1>Start a meeting session</h1>
-            <p>Select one curated context folder. Supported text documents anywhere inside it are preloaded into Quick and Pi with no required filenames; it also becomes Pi's working directory.</p>
-            <input id="workspace" class="input" aria-label="Context folder" placeholder="/absolute/path/to/context-folder" value="${escapeHtml(workspace)}" />
+            <p>Select the workspace folder Pi may traverse. No filename or directory structure is required.</p>
+            <input id="workspace" class="input" aria-label="Pi workspace folder" placeholder="/absolute/path/to/workspace" value="${escapeHtml(workspace)}" />
+            <label>Direct context for Quick and Pi
+              <textarea id="direct-context" class="prompt" placeholder="Paste the compact facts, background, answer rules, and prepared material Quick must know without reading files or searching.">${escapeHtml(directContext)}</textarea>
+            </label>
             <label>Authoritative Pi model
               <select id="pi-model" class="select" ${sessionStarting ? "disabled" : ""}>
                 ${PI_MODEL_CHOICES.map((choice) => `<option value="${escapeHtml(choice.key)}" ${choice.key === selectedPiModelKey ? "selected" : ""}>${escapeHtml(choice.label)}</option>`).join("")}
@@ -795,6 +802,10 @@ function render() {
   document.querySelector<HTMLInputElement>("#workspace")?.addEventListener("input", (event) => {
     workspace = (event.target as HTMLInputElement).value;
     try { window.localStorage.setItem("codex-overlay.workspace", workspace); } catch { /* Optional persistence. */ }
+  });
+  document.querySelector<HTMLTextAreaElement>("#direct-context")?.addEventListener("input", (event) => {
+    directContext = (event.target as HTMLTextAreaElement).value;
+    try { window.localStorage.setItem("codex-overlay.direct-context", directContext); } catch { /* Optional persistence. */ }
   });
   document.querySelector<HTMLSelectElement>("#pi-model")?.addEventListener("change", (event) => {
     const choice = PI_MODEL_CHOICES.find((candidate) => candidate.key === (event.target as HTMLSelectElement).value);
@@ -980,7 +991,7 @@ async function startSession(mode: SessionMode, activateWindow = true) {
     closingSession = false;
     realtimeContextStatus = "Loading Quick context";
     piPreparing = true;
-    piContextStatus = "Loading full context folder";
+    piContextStatus = "Starting Pi in workspace";
     quickState = "starting";
     piState = "starting";
     microphoneState = "starting";
@@ -1057,9 +1068,9 @@ async function recoverRealtime(automatic: boolean, epoch = sessionEpoch) {
   let lastError = "";
   for (let attempt = 0; attempt < 3 && epoch === sessionEpoch && !closingSession; attempt++) {
     try {
-      const context = await invoke<ContextInfo>("start_realtime_session", { workspace });
+      const context = await invoke<ContextInfo>("start_realtime_session", { directContext });
       quickState = "ready";
-      realtimeContextStatus = `${context.file_count} files · ${context.version}`;
+      realtimeContextStatus = `${context.byte_count} direct context bytes · ${context.version}`;
       render();
       return true;
     } catch (cause) {
@@ -1091,10 +1102,11 @@ async function recoverPi(automatic: boolean, epoch = sessionEpoch) {
         model: selection.model,
         thinkingLevel: selection.thinkingLevel,
         nitro: Boolean(selection.nitro),
+        directContext,
       });
       piPreparing = false;
       piState = "ready";
-      piContextStatus = `${context.file_count} files · ${context.version}`;
+      piContextStatus = `Workspace ready · ${context.byte_count} direct context bytes`;
       render();
       return;
     } catch (cause) {
@@ -1652,14 +1664,14 @@ await listen<string>("pi-session", ({ payload }) => {
 });
 await listen<ContextInfo>("realtime-context-ready", ({ payload }) => {
   quickState = "ready";
-  realtimeContextStatus = `${payload.file_count} files · ${payload.version}`;
+  realtimeContextStatus = `${payload.byte_count} direct context bytes · ${payload.version}`;
   render();
 });
 await listen<PreparationStatus>("pi-preparation-status", ({ payload }) => {
   piPreparing = payload.phase === "preparing";
   piState = payload.phase === "ready" ? "ready" : payload.phase === "error" ? "failed" : "retrying";
   piContextStatus = payload.context
-    ? `${payload.message} · ${payload.context.file_count} files · ${payload.context.version}`
+    ? `${payload.message} · ${payload.context.byte_count} direct context bytes`
     : payload.message;
   render();
 });

@@ -56,22 +56,16 @@ else
   failed=1
 fi
 
-context_root=${1:-}
-if [[ -n "$context_root" ]]; then
-  if [[ ! -d "$context_root" ]]; then
-    print "FAIL context folder does not exist: $context_root"
+workspace_root=${1:-}
+if [[ -n "$workspace_root" ]]; then
+  if [[ ! -d "$workspace_root" ]]; then
+    print "FAIL Pi workspace folder does not exist: $workspace_root"
     failed=1
   else
-    context_count=$(find "$context_root" -type f \( -iname '*.md' -o -iname '*.markdown' -o -iname '*.txt' -o -iname '*.json' -o -iname '*.yaml' -o -iname '*.yml' -o -iname '*.toml' -o -iname '*.rst' -o -iname '*.csv' \) ! -path '*/.*/*' | wc -l | tr -d ' ')
-    if (( context_count > 0 )); then
-      print "OK   context folder contains $context_count supported document(s)"
-    else
-      print "FAIL context folder contains no supported UTF-8 documents"
-      failed=1
-    fi
+    print "OK   Pi workspace folder exists; its filenames, hierarchy, and contents are user-defined"
   fi
 else
-  print "INFO Pass the context root as the first argument to validate it."
+  print "INFO Pass the Pi workspace folder as the first argument to validate it."
 fi
 
 if [[ -d "src-tauri/target/release/bundle/macos/Codex Overlay.app" ]]; then

@@ -11,7 +11,7 @@ use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::process::{Child, ChildStdin, Command};
 use tokio::sync::{oneshot, Mutex as AsyncMutex};
 
-use crate::context::{load_context, ContextInfo, ContextKind};
+use crate::context::{build_prompt_context, ContextInfo, ContextKind};
 use crate::credentials::load_secret;
 use crate::prompts::pi_instructions;
 
@@ -73,16 +73,17 @@ pub async fn start_pi_session(
     model: String,
     thinking_level: Option<String>,
     nitro: Option<bool>,
+    direct_context: String,
 ) -> Result<ContextInfo, String> {
     let thinking_level = thinking_level.unwrap_or_else(|| PI_THINKING_LEVEL.to_string());
     validate_selection(&provider, &model, &thinking_level)?;
-    let nitro = nitro.unwrap_or(false)
-        || (provider == "openrouter" && model == "openai/gpt-5.6-terra");
+    let nitro =
+        nitro.unwrap_or(false) || (provider == "openrouter" && model == "openai/gpt-5.6-terra");
     let path = PathBuf::from(&workspace);
     if !path.is_dir() {
         return Err("Workspace directory does not exist".into());
     }
-    let pack = load_context(&path, ContextKind::Pi)?;
+    let pack = build_prompt_context(&direct_context, ContextKind::Pi);
     let same_session = state.ready.load(Ordering::Acquire)
         && state
             .workspace

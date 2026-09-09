@@ -1,49 +1,22 @@
-use codex_overlay_lib::context::{load_context, ContextKind};
-use std::fs;
-use std::path::Path;
+use codex_overlay_lib::context::{build_prompt_context, ContextKind};
 
 #[test]
-fn bundled_context_template_loads_and_is_deterministic() {
-    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let template = manifest_dir.parent().unwrap().join("context-template");
-    let quick = load_context(&template, ContextKind::Realtime).unwrap();
-    let full = load_context(&template, ContextKind::Pi).unwrap();
+fn direct_context_is_trimmed_deterministic_and_lane_specific() {
+    let quick = build_prompt_context("  Preferred answer: concise.  ", ContextKind::Realtime);
+    let quick_again = build_prompt_context("Preferred answer: concise.", ContextKind::Realtime);
+    let pi = build_prompt_context("Preferred answer: concise.", ContextKind::Pi);
 
-    assert!(quick.info.file_count >= 2);
-    assert!(quick.info.byte_count > 100);
-    assert_eq!(full.info.file_count, quick.info.file_count);
-    assert!(full.text.contains("===== FILE:"));
-    assert_eq!(
-        quick.info.hash,
-        load_context(&template, ContextKind::Realtime)
-            .unwrap()
-            .info
-            .hash
-    );
+    assert_eq!(quick.text, "Preferred answer: concise.");
+    assert_eq!(quick.info.file_count, 1);
+    assert_eq!(quick.info.byte_count, quick.text.len());
+    assert_eq!(quick.info.hash, quick_again.info.hash);
+    assert_ne!(quick.info.hash, pi.info.hash);
 }
 
 #[test]
-fn arbitrary_document_names_and_nested_folders_are_loaded() {
-    let root = std::env::temp_dir().join(format!("codex-overlay-context-{}", uuid::Uuid::new_v4()));
-    let nested = root.join("anything").join("deeper");
-    fs::create_dir_all(&nested).unwrap();
-    fs::write(root.join("facts-any-name.txt"), "Preferred answer: concise").unwrap();
-    fs::write(
-        nested.join("architecture-notes.markdown"),
-        "Queue then stream",
-    )
-    .unwrap();
-    fs::write(nested.join("ignored.png"), b"not context").unwrap();
-
-    let quick = load_context(&root, ContextKind::Realtime).unwrap();
-    let pi = load_context(&root, ContextKind::Pi).unwrap();
-    assert_eq!(quick.info.file_count, 2);
-    assert_eq!(pi.info.file_count, 2);
-    assert!(quick.text.contains("facts-any-name.txt"));
-    assert!(quick
-        .text
-        .contains("anything/deeper/architecture-notes.markdown"));
-    assert!(!quick.text.contains("ignored.png"));
-
-    fs::remove_dir_all(root).unwrap();
+fn empty_direct_context_is_allowed() {
+    let pack = build_prompt_context("  \n\t", ContextKind::Realtime);
+    assert!(pack.text.is_empty());
+    assert_eq!(pack.info.file_count, 0);
+    assert_eq!(pack.info.byte_count, 0);
 }

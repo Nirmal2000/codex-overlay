@@ -6,10 +6,10 @@ This is the canonical handoff document for a person or coding agent installing C
 
 1. Work from this repository and preserve user changes.
 2. Ask the user which Pi provider they want before configuring optional credentials.
-3. Ask for the absolute folder that should contain their interview/work context. If they do not have one, create it from `context-template` and interview them to replace every placeholder with verified information.
+3. Ask for the absolute folder Pi should use as its workspace. Do not require any filename or layout. Separately interview the user for the compact direct context that Quick and Pi must receive in their prompts.
 4. Never ask the user to paste API keys or OAuth tokens into chat. Ask them to enter secrets locally in `.env` or complete an interactive Pi login.
 5. Never print, inspect, commit, upload, or summarize secret values.
-6. Never copy another person's `.env`, `~/.pi/agent/auth.json`, application database, screenshots, transcripts, or context folder.
+6. Never copy another person's `.env`, `~/.pi/agent/auth.json`, application database, screenshots, transcripts, direct context, or private workspace.
 7. Apple signing and notarization are optional. Their absence must not block a local build.
 8. Explain each command that changes the machine, but continue autonomously through ordinary build and verification work.
 9. Stop only when interactive OAuth, macOS privacy approval, or factual context from the user is required.
@@ -19,8 +19,8 @@ This is the canonical handoff document for a person or coding agent installing C
 
 Ask these questions one at a time and retain the answers for setup:
 
-1. What absolute directory should Codex Overlay use as its context root?
-2. Do they want to create a new context from the included template or use an existing compatible context?
+1. What absolute directory should Pi use as its workspace for on-demand file traversal?
+2. What compact facts, background, prepared answers, and response rules must Quick know immediately without reading files or using web search?
 3. Which authoritative Pi provider should be enabled first?
    - ChatGPT subscription: `openai-codex`
    - xAI subscription: `xai`
@@ -182,59 +182,32 @@ Then use the matching command inside Pi:
 
 Never commit or copy `~/.pi/agent/auth.json`. Each user authenticates their own account.
 
-## Create the context folder
+## Configure the Pi workspace and direct context
 
-Only the folder location is required. The application has no required filenames, manifests, or directory hierarchy. It recursively preloads supported UTF-8 documents from anywhere below the selected folder into both Quick and Pi.
+The workspace and model context are different inputs.
 
-Supported files are Markdown, plain text, JSON, YAML, TOML, RST, and CSV. Hidden entries, symlinks, source-control metadata, dependency folders, and common build-output directories are ignored. Convert useful PDF, Word, image, database, or other binary content to a supported text format first.
+For the **Pi workspace**, ask only for an absolute folder location. It can be an existing work folder containing any filenames and hierarchy. Pi starts with this directory as its working directory and traverses files on demand using listing, finding, grep, and read tools. Nothing in the workspace is automatically packed into the prompt, and there are no required context documents.
 
-The included template is an optional example, not a schema:
+For **Direct context for Quick and Pi**, interview the user for the compact information the models must know immediately: personal facts, background, introductions, project summaries, prepared answers, constraints, and answer-style preferences. Distinguish verified facts from technical explanation and never invent employers, titles, dates, ownership, customers, metrics, education, or production claims.
 
-```text
-context-root/
-├── 11-interview-answer-scripts.md
-├── 13-spoken-project-notes.md
-└── Experience/
-    ├── quick-context.md
-    ├── resolved-facts.md
-    ├── career-timeline.md
-    ├── expertise-map.md
-    ├── repo-map.md
-    ├── companies/
-    │   └── company-name/
-    │       ├── README.md
-    │       └── technical-deep-dive.md
-    └── projects/
-        └── project-name/
-            └── README.md
-```
+Paste the resulting compact block into the app's **Direct context for Quick and Pi** field before starting the session. The app stores it locally and injects it directly into both prompts. Quick cannot traverse files or search the web, so every fact Quick must answer instantly belongs in this field. Pi uses the same direct context first, then traverses the workspace only when more evidence is necessary. It searches the web only when neither source is sufficient or when a current public fact is required.
 
-For a new user, copy the template:
+Do not save the user's direct context, private workspace content, or exported profile in this repository. If the user starts sessions from the phone, configure and save the workspace and direct context once on the Mac first.
+
+Validate the workspace folder:
 
 ```bash
-CONTEXT_ROOT="$HOME/codex-overlay-context"
-mkdir -p "$CONTEXT_ROOT"
-cp -R context-template/. "$CONTEXT_ROOT"/
-```
-
-The user may freely rename, move, add, or remove every file and subdirectory shown above. The setup agent must ask enough factual questions to make the selected folder useful. It must distinguish verified personal facts from defensible technical explanations. Do not invent employers, titles, dates, ownership, customers, metrics, education, or production claims. Remove placeholder/example content before the first real session.
-
-Most importantly, ask which facts, introductions, project explanations, prepared answers, constraints, and response preferences must be available to **Quick** without delay. Put that material into concise supported documents anywhere inside the selected folder. The app injects every discovered document directly into Quick's initial prompt, so Quick requires neither file traversal nor web search. Keep the folder curated enough to fit comfortably in model context; do not point it at the user's home directory or an entire code repository.
-
-If Pi may inspect source later, place verified absolute repository paths in any context document and confirm every path exists on the new Mac. No particular map filename is required.
-
-Validate the folder:
-
-```bash
-./scripts/doctor.sh "$CONTEXT_ROOT"
+WORKSPACE_ROOT="$HOME/codex-overlay-workspace"
+mkdir -p "$WORKSPACE_ROOT"
+./scripts/doctor.sh "$WORKSPACE_ROOT"
 ```
 
 ## Run all local checks
 
-Run the automated setup workflow with the chosen context root:
+Run the automated setup workflow with the chosen Pi workspace:
 
 ```bash
-./scripts/setup-macos.sh "$CONTEXT_ROOT"
+./scripts/setup-macos.sh "$WORKSPACE_ROOT"
 ```
 
 This performs a locked dependency install, frontend build, JavaScript tests, remote-client tests, and Rust library tests. It does not read or print secret values.
@@ -243,7 +216,7 @@ If the native WebRTC build has a stale generated cache, clean only that package 
 
 ```bash
 cargo clean --manifest-path src-tauri/Cargo.toml -p webrtc-audio-processing-sys
-./scripts/setup-macos.sh "$CONTEXT_ROOT"
+./scripts/setup-macos.sh "$WORKSPACE_ROOT"
 ```
 
 ## Development run
@@ -254,7 +227,7 @@ For a first smoke test from source:
 npm run tauri -- dev
 ```
 
-Enter the absolute `CONTEXT_ROOT` in the setup screen. The app saves this choice locally for future launches. Choose a Pi model whose provider was configured, then start a session.
+Enter the absolute Pi workspace in the setup screen and paste the compact **Direct context for Quick and Pi**. The app saves both choices locally for future launches. Choose a Pi model whose provider was configured, then start a session.
 
 ## Build without Apple signing
 
@@ -317,7 +290,7 @@ Then grant the three permissions again. Use this reset only for a confirmed stal
 
 Start with a short session and confirm:
 
-1. The selected context folder loads for Quick and Pi.
+1. Pi starts in the selected workspace, and the saved direct context is injected into both Quick and Pi.
 2. Quick reports ready.
 3. Pi reports ready for the selected model.
 4. The microphone meter moves and the user's speech appears in the live transcript.
@@ -428,14 +401,14 @@ From a clean repository checkout:
 git pull --ff-only
 export PATH="$(brew --prefix node@22)/bin:$PATH"
 npm ci
-./scripts/setup-macos.sh "$CONTEXT_ROOT"
+./scripts/setup-macos.sh "$WORKSPACE_ROOT"
 npm run tauri -- build --bundles app
 osascript -e 'tell application "Codex Overlay" to quit' 2>/dev/null || true
 ditto "src-tauri/target/release/bundle/macos/Codex Overlay.app" "/Applications/Codex Overlay.app"
 open -a "/Applications/Codex Overlay.app"
 ```
 
-The user's `.env`, Pi authentication, context folder, and local session database are outside Git and should survive an update.
+The user's `.env`, Pi authentication, private workspace, locally saved direct context, and session database are outside Git and should survive an update.
 
 ## Final acceptance checklist
 
@@ -447,7 +420,7 @@ The setup is complete only when all of the following are true:
 - [ ] `.env` exists, is permission-restricted, and is ignored by Git.
 - [ ] `OPENAI_API_KEY` and `XAI_API_KEY` are configured.
 - [ ] The selected Pi provider is authenticated.
-- [ ] Context documents are complete and contain no unresolved placeholders.
+- [ ] The Pi workspace is selected and the direct-context field contains the facts and response rules Quick must know immediately.
 - [ ] Frontend, bridge, remote, and Rust tests pass.
 - [ ] The unsigned `.app` builds without requiring Apple credentials.
 - [ ] The installed app launches from `/Applications`.

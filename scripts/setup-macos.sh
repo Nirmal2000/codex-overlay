@@ -42,11 +42,10 @@ if [[ ! -f .env ]]; then
 fi
 
 if [[ $# -ge 1 ]]; then
-  context_root=$1
-  if [[ ! -e "$context_root" ]]; then
-    mkdir -p "$context_root"
-    cp -R context-template/. "$context_root"/
-    print "Created a context template at $context_root"
+  workspace_root=$1
+  if [[ ! -e "$workspace_root" ]]; then
+    mkdir -p "$workspace_root"
+    print "Created the Pi workspace folder at $workspace_root"
   fi
 fi
 
